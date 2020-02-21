@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "613919810603",
+    "firebase_url": "https://flavors-50191.firebaseio.com",
+    "project_id": "flavors-50191",
+    "storage_bucket": "flavors-50191.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:613919810603:android:0b38fa5a6ef0ee05af766e",
+        "android_client_info": {
+          "package_name": "com.digitappstudio.subicjobs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "613919810603-ginp0d3rep996rcthavd46kbdha52863.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.digitappstudio.subicjobs",
+            "certificate_hash": "146ae3e693ca1f187e433f7a484b8e8a16aa80ec"
+          }
+        },
+        {
+          "client_id": "613919810603-q6k2831hapa48ttbmpskgtfpi1gasfkp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDR_BjxBYweraOHInYGDtH6asVj3pv6Un8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "613919810603-q6k2831hapa48ttbmpskgtfpi1gasfkp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
