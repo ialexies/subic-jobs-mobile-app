@@ -139,6 +139,7 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+<<<<<<< HEAD
   flutter_facebook_login:
     dependency: "direct main"
     description:
@@ -153,6 +154,8 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
+=======
+>>>>>>> parent of 215ee5c... Working google signin and firebase signin
   flutter_svg:
     dependency: "direct main"
     description:
@@ -170,13 +173,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  font_awesome_flutter:
-    dependency: "direct main"
-    description:
-      name: font_awesome_flutter
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "8.7.0"
   geolocator:
     dependency: "direct main"
     description:
