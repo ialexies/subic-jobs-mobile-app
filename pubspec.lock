@@ -140,6 +140,7 @@ packages:
     source: sdk
     version: "0.0.0"
 <<<<<<< HEAD
+<<<<<<< HEAD
   flutter_facebook_login:
     dependency: "direct main"
     description:
@@ -147,6 +148,8 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.0"
+=======
+>>>>>>> parent of c3c7d72... with multiple provider design
   flutter_signin_button:
     dependency: "direct main"
     description:

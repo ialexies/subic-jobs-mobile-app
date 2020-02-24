@@ -19,14 +19,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-<<<<<<< HEAD
   
   
  
   flutter_facebook_login: ^3.0.0
-=======
-  flutter_svg: ^0.17.1
->>>>>>> parent of 215ee5c... Working google signin and firebase signin
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
