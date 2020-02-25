@@ -31,6 +31,10 @@ dependencies:
   google_sign_in: ^4.1.4
   provider: ^4.0.4
   geolocator: ^5.2.1
+  flutter_svg: ^0.17.1
+  flutter_signin_button: ^1.0.0
+  font_awesome_flutter: ^8.7.0
+  
 
 dev_dependencies:
   flutter_test:
