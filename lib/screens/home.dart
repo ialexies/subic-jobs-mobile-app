@@ -61,12 +61,51 @@ class _HomeState extends State<Home> {
     return credential;
   }
 
+
+    Future<FacebookLoginResult> _handleFBSignIn() async {
+    FacebookLogin facebookLogin = FacebookLogin();
+    FacebookLoginResult facebookLoginResult =
+        await facebookLogin.logIn(['email']);
+
+    switch (facebookLoginResult.status) {
+      case FacebookLoginStatus.cancelledByUser:
+        print("Cancelled");
+        break;
+      case FacebookLoginStatus.error:
+        print("error");
+        break;
+      case FacebookLoginStatus.loggedIn:
+        print("Logged In");
+        break;
+    }
+    return facebookLoginResult;
+  }
+
+  _handleSignInFacebook() async {
+    AuthCredential fbCredential;
+    final FacebookLoginResult result =
+        await facebookSignIn.logIn(['email', 'public_profile']);
+    final FacebookAccessToken accessToken = result.accessToken;
+    fbCredential = FacebookAuthProvider.getCredential(accessToken: accessToken.token);
+
+    return fbCredential;
+
+    // //************getting user info**********
+    // final graphResponse = await http.get(
+    //         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
+    // // final profile = JSON.decode(graphResponse.body);
+    // final profile = json.decode(graphResponse.body);
+    // print(profile.toString());
+
+  }
+
   Future<FirebaseUser> _handleSignIn(String loginType) async {
     getCredential() async {
       if (loginType == "G") {
         return await _handleSignInGoogle();
-      }else if(loginType == "G"){
-        
+        // return await _handleFBSignIn();
+      }else if(loginType == "FB"){
+        return await _handleSignInFacebook();
       }
     }
 
@@ -79,46 +118,6 @@ class _HomeState extends State<Home> {
     return user;
   }
 
-  Future<Null> _login() async {
-    final FacebookLoginResult result =
-        await facebookSignIn.logIn(['email', 'public_profile']);
-
-    switch (result.status) {
-      case FacebookLoginStatus.loggedIn:
-        final FacebookAccessToken accessToken = result.accessToken;
-        final graphResponse = await http.get(
-            'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
-        // final profile = JSON.decode(graphResponse.body);
-        final profile = json.decode(graphResponse.body);
-
-        print(profile.toString());
-
-        setState(() {
-          _message = '''
-            Logged in!
-            user: ${facebookSignIn.currentAccessToken};
-            Token: ${accessToken.token}
-            User id: ${accessToken.userId}
-            Expires: ${accessToken.expires}
-            Permissions: ${accessToken.permissions}
-            Declined permissions: ${accessToken.declinedPermissions}
-            ''';
-        });
-
-        setState(() {
-          isAuth = true;
-        });
-
-        break;
-      case FacebookLoginStatus.cancelledByUser:
-        _showMessage('Login cancelled by the user.');
-        break;
-      case FacebookLoginStatus.error:
-        _showMessage('Something went wrong with the login process.\n'
-            'Here\'s the error Facebook gave us: ${result.errorMessage}');
-        break;
-    }
-  }
 
   Future<Null> _logOut() async {
     await facebookSignIn.logOut();
@@ -167,11 +166,11 @@ class _HomeState extends State<Home> {
     return Scaffold(
       body: SplashScreen(
         title: "Please Login",
-        description: "Please Login using your \ngoogle account",
+        description: "Please Login using \n your preffered account",
         content: Padding(
           padding: const EdgeInsets.all(20.0),
           child: SizedBox(
-            width: 250,
+            width: 160,
             child: Column(
               children: <Widget>[
                 Container(
@@ -188,14 +187,8 @@ class _HomeState extends State<Home> {
                       children: <Widget>[
                         Expanded(
                             child: FloatingActionButton(
-                          onPressed: _login,
-                          child: FaIcon(FontAwesomeIcons.facebookF),
-                        )),
-                        VerticalDivider(),
-                        Expanded(
-                            child: FloatingActionButton(
                           onPressed: () {
-                            _handleSignIn("fb")
+                            _handleSignIn("FB")
                                 .then((FirebaseUser user) => (print(user)))
                                 .catchError((e) => print(e));
                           },
@@ -212,12 +205,8 @@ class _HomeState extends State<Home> {
                           },
                           child: FaIcon(FontAwesomeIcons.google),
                         )),
-                        VerticalDivider(),
-                        Expanded(
-                            child: FloatingActionButton(
-                          onPressed: null,
-                          child: FaIcon(FontAwesomeIcons.phone),
-                        )),
+                   
+             
                       ],
                     ),
                   ),
