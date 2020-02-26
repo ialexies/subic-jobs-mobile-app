@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/widgets/splashScreen.dart';
 import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -12,6 +14,8 @@ import 'dart:convert';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
+User currentUser;
+final usersRef = Firestore.instance.collection('users');
 
 class Home extends StatefulWidget {
   @override
@@ -47,46 +51,54 @@ class _HomeState extends State<Home> {
     // isAuth=false;
   }
 
+
+
+  _createUserInFirestore(GoogleSignInAccount user) async{
+    DocumentSnapshot doc = await usersRef.document(user.email).get(); //check if the google user is existed in  users list of firestore
+
+    if(doc!=null){
+      setState(() {
+          currentUser = User.fromGoogle(doc);
+      });
+      print(currentUser.email.toString());
+    }else{
+      print('register for an account');
+    }
+
+
+
+  }
+
+
   _handleSignInGoogle() async {
     AuthCredential credential;
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
-
+  
     credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
+    // set currentUser data
+    final GoogleSignInAccount user = _googleSignIn.currentUser;
+    await _createUserInFirestore(user); //call this to deserialize the user document
+    
+
+
     return credential;
   }
 
 
-    Future<FacebookLoginResult> _handleFBSignIn() async {
-    FacebookLogin facebookLogin = FacebookLogin();
-    FacebookLoginResult facebookLoginResult =
-        await facebookLogin.logIn(['email']);
-
-    switch (facebookLoginResult.status) {
-      case FacebookLoginStatus.cancelledByUser:
-        print("Cancelled");
-        break;
-      case FacebookLoginStatus.error:
-        print("error");
-        break;
-      case FacebookLoginStatus.loggedIn:
-        print("Logged In");
-        break;
-    }
-    return facebookLoginResult;
-  }
 
   _handleSignInFacebook() async {
     AuthCredential fbCredential;
     final FacebookLoginResult result =
         await facebookSignIn.logIn(['email', 'public_profile']);
     final FacebookAccessToken accessToken = result.accessToken;
-    fbCredential = FacebookAuthProvider.getCredential(accessToken: accessToken.token);
+    fbCredential =
+        FacebookAuthProvider.getCredential(accessToken: accessToken.token);
 
     return fbCredential;
 
@@ -96,7 +108,6 @@ class _HomeState extends State<Home> {
     // // final profile = JSON.decode(graphResponse.body);
     // final profile = json.decode(graphResponse.body);
     // print(profile.toString());
-
   }
 
   Future<FirebaseUser> _handleSignIn(String loginType) async {
@@ -104,28 +115,27 @@ class _HomeState extends State<Home> {
       if (loginType == "G") {
         return await _handleSignInGoogle();
         // return await _handleFBSignIn();
-      }else if(loginType == "FB"){
+      } else if (loginType == "FB") {
         return await _handleSignInFacebook();
       }
     }
 
     final FirebaseUser user =
-        (await _auth.signInWithCredential(await getCredential()).catchError((err){
-          print('errrrrrrrrrrrrrrrrrrr $err');
-        })).user;
-    // print("signed in " + user.displayName);
-    setState(() {
-      isAuth = true;
-    });
+        (await _auth.signInWithCredential(await getCredential()).then((val) {
+      setState(() {
+        isAuth = true;
+      });
+    }).catchError((err) {
+      print('*****error in firbase handlesignin $err');
+    }));
+            
+
     return user;
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    return isAuth == false ? 
-    unAuthScreen() : authScreen();
+    return isAuth == false ? unAuthScreen() : authScreen();
   }
 
   authScreen() {
@@ -133,6 +143,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
+      body: Text(  currentUser.email),
       floatingActionButton: FloatingActionButton(onPressed: _signOut),
     );
   }
@@ -142,8 +153,6 @@ class _HomeState extends State<Home> {
     await _googleSignIn.signOut();
     await facebookSignIn.logOut();
   }
-
-
 
   unAuthScreen() {
     return Scaffold(
@@ -188,8 +197,6 @@ class _HomeState extends State<Home> {
                           },
                           child: FaIcon(FontAwesomeIcons.google),
                         )),
-                   
-             
                       ],
                     ),
                   ),

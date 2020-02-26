@@ -1,8 +1,11 @@
 
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User{
   final String id;
-  final String username;
+  final String userName;
+  final String displayName;
   final String firstName;
   final String lastName;
   final String bio;
@@ -15,7 +18,8 @@ class User{
 
   User({
     this.id,
-    this.username,
+    this.userName,
+    this.displayName,
     this.firstName,
     this.lastName,
     this.bio,
@@ -28,9 +32,18 @@ class User{
   });
 
 
-  factory User.fromGoogle(){
-    return User();
+  factory User.fromGoogle(DocumentSnapshot doc){
+    return User(
+      // id: doc['id'],
+      email: doc['email'],
+      // userName: doc['username'],
+      // profilePhoto: doc['photoUrl'],
+		  //     displayName: doc['displayName'],
+      // bio: doc['bio'],
+    );
   }
+
+  
 
 
 }
