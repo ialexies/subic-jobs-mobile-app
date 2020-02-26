@@ -1,14 +1,21 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/widgets/splashScreen.dart';
 import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/fa_icon.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
+User currentUser;
+final usersRef = Firestore.instance.collection('users');
 
 class Home extends StatefulWidget {
   @override
@@ -17,6 +24,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
+  static final FacebookLogin facebookSignIn = new FacebookLogin();
+  String _message = 'Log in/out by pressing the buttons below.';
 
   @override
   void initState() {
@@ -42,22 +51,85 @@ class _HomeState extends State<Home> {
     // isAuth=false;
   }
 
-  Future<FirebaseUser> _handleSignIn() async {
+
+
+  _createUserInFirestore(GoogleSignInAccount user) async{
+    DocumentSnapshot doc = await usersRef.document(user.email).get(); //check if the google user is existed in  users list of firestore
+
+    if(doc!=null){
+      setState(() {
+          currentUser = User.fromGoogle(doc);
+      });
+      print(currentUser.email.toString());
+    }else{
+      print('register for an account');
+    }
+
+
+
+  }
+
+
+  _handleSignInGoogle() async {
+    AuthCredential credential;
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
-
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
+  
+    credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
+    // set currentUser data
+    final GoogleSignInAccount user = _googleSignIn.currentUser;
+    await _createUserInFirestore(user); //call this to deserialize the user document
+    
+
+
+    return credential;
+  }
+
+
+
+  _handleSignInFacebook() async {
+    AuthCredential fbCredential;
+    final FacebookLoginResult result =
+        await facebookSignIn.logIn(['email', 'public_profile']);
+    final FacebookAccessToken accessToken = result.accessToken;
+    fbCredential =
+        FacebookAuthProvider.getCredential(accessToken: accessToken.token);
+
+    return fbCredential;
+
+    // //************getting user info**********
+    // final graphResponse = await http.get(
+    //         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
+    // // final profile = JSON.decode(graphResponse.body);
+    // final profile = json.decode(graphResponse.body);
+    // print(profile.toString());
+  }
+
+  Future<FirebaseUser> _handleSignIn(String loginType) async {
+    getCredential() async {
+      if (loginType == "G") {
+        return await _handleSignInGoogle();
+        // return await _handleFBSignIn();
+      } else if (loginType == "FB") {
+        return await _handleSignInFacebook();
+      }
+    }
+
     final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
-    // print("signed in " + user.displayName);
-    setState(() {
-      isAuth = true;
-    });
+        (await _auth.signInWithCredential(await getCredential()).then((val) {
+      setState(() {
+        isAuth = true;
+      });
+    }).catchError((err) {
+      print('*****error in firbase handlesignin $err');
+    }));
+            
+
     return user;
   }
 
@@ -71,6 +143,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
+      body: Text(  currentUser.email),
       floatingActionButton: FloatingActionButton(onPressed: _signOut),
     );
   }
@@ -78,29 +151,18 @@ class _HomeState extends State<Home> {
   void _signOut() async {
     await _auth.signOut();
     await _googleSignIn.signOut();
-  }
-
-  login() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        _googleSignIn.signIn();
-      }
-    } on SocketException catch (_) {
-      // print('not connected');
-      // _showSnackBar();
-    }
+    await facebookSignIn.logOut();
   }
 
   unAuthScreen() {
     return Scaffold(
       body: SplashScreen(
         title: "Please Login",
-        description: "Please Login using your \ngoogle account",
+        description: "Please Login using \n your preffered account",
         content: Padding(
           padding: const EdgeInsets.all(20.0),
           child: SizedBox(
-            width: 250,
+            width: 160,
             child: Column(
               children: <Widget>[
                 Container(
@@ -117,25 +179,23 @@ class _HomeState extends State<Home> {
                       children: <Widget>[
                         Expanded(
                             child: FloatingActionButton(
-                          onPressed: null,
+                          onPressed: () {
+                            _handleSignIn("FB")
+                                .then((FirebaseUser user) => (print(user)))
+                                .catchError((e) => print(e));
+                          },
                           child: FaIcon(FontAwesomeIcons.facebookF),
                         )),
                         VerticalDivider(),
                         Expanded(
                             child: FloatingActionButton(
-                              backgroundColor: Colors.red,
+                          backgroundColor: Colors.red,
                           onPressed: () {
-                            _handleSignIn()
+                            _handleSignIn("G")
                                 .then((FirebaseUser user) => (print(user)))
                                 .catchError((e) => print(e));
                           },
                           child: FaIcon(FontAwesomeIcons.google),
-                        )),
-                        VerticalDivider(),
-                        Expanded(
-                            child: FloatingActionButton(
-                          onPressed: null,
-                          child: FaIcon(FontAwesomeIcons.phone),
                         )),
                       ],
                     ),
