@@ -110,7 +110,9 @@ class _HomeState extends State<Home> {
     }
 
     final FirebaseUser user =
-        (await _auth.signInWithCredential(await getCredential())).user;
+        (await _auth.signInWithCredential(await getCredential()).catchError((err){
+          print('errrrrrrrrrrrrrrrrrrr $err');
+        })).user;
     // print("signed in " + user.displayName);
     setState(() {
       isAuth = true;
@@ -119,20 +121,11 @@ class _HomeState extends State<Home> {
   }
 
 
-  Future<Null> _logOut() async {
-    await facebookSignIn.logOut();
-    _showMessage('Logged out.');
-  }
-
-  void _showMessage(String message) {
-    setState(() {
-      _message = message;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
-    return isAuth == false ? unAuthScreen() : authScreen();
+    return isAuth == false ? 
+    unAuthScreen() : authScreen();
   }
 
   authScreen() {
@@ -150,17 +143,7 @@ class _HomeState extends State<Home> {
     await facebookSignIn.logOut();
   }
 
-  login() async {
-    try {
-      final result = await InternetAddress.lookup('google.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        _googleSignIn.signIn();
-      }
-    } on SocketException catch (_) {
-      // print('not connected');
-      // _showSnackBar();
-    }
-  }
+
 
   unAuthScreen() {
     return Scaffold(
