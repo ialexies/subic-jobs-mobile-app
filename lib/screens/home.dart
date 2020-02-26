@@ -10,7 +10,6 @@ import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -48,18 +47,31 @@ class _HomeState extends State<Home> {
     // isAuth=false;
   }
 
-  Future<FirebaseUser> _handleSignIn() async {
+  _handleSignInGoogle() async {
+    AuthCredential credential;
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
+    credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
 
+    return credential;
+  }
+
+  Future<FirebaseUser> _handleSignIn(String loginType) async {
+    getCredential() async {
+      if (loginType == "G") {
+        return await _handleSignInGoogle();
+      }else if(loginType == "G"){
+        
+      }
+    }
+
     final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
+        (await _auth.signInWithCredential(await getCredential())).user;
     // print("signed in " + user.displayName);
     setState(() {
       isAuth = true;
@@ -67,12 +79,9 @@ class _HomeState extends State<Home> {
     return user;
   }
 
-
-
-Future<Null> _login() async {
+  Future<Null> _login() async {
     final FacebookLoginResult result =
-        await facebookSignIn.logIn(['email','public_profile']);
-        
+        await facebookSignIn.logIn(['email', 'public_profile']);
 
     switch (result.status) {
       case FacebookLoginStatus.loggedIn:
@@ -84,8 +93,8 @@ Future<Null> _login() async {
 
         print(profile.toString());
 
-         setState(() {
-            _message = '''
+        setState(() {
+          _message = '''
             Logged in!
             user: ${facebookSignIn.currentAccessToken};
             Token: ${accessToken.token}
@@ -94,9 +103,11 @@ Future<Null> _login() async {
             Permissions: ${accessToken.permissions}
             Declined permissions: ${accessToken.declinedPermissions}
             ''';
-         }); 
-      
+        });
 
+        setState(() {
+          isAuth = true;
+        });
 
         break;
       case FacebookLoginStatus.cancelledByUser:
@@ -119,7 +130,6 @@ Future<Null> _login() async {
       _message = message;
     });
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +148,7 @@ Future<Null> _login() async {
   void _signOut() async {
     await _auth.signOut();
     await _googleSignIn.signOut();
+    await facebookSignIn.logOut();
   }
 
   login() async {
@@ -183,15 +194,19 @@ Future<Null> _login() async {
                         VerticalDivider(),
                         Expanded(
                             child: FloatingActionButton(
-                          onPressed: _logOut,
+                          onPressed: () {
+                            _handleSignIn("fb")
+                                .then((FirebaseUser user) => (print(user)))
+                                .catchError((e) => print(e));
+                          },
                           child: FaIcon(FontAwesomeIcons.facebookF),
                         )),
                         VerticalDivider(),
                         Expanded(
                             child: FloatingActionButton(
-                              backgroundColor: Colors.red,
+                          backgroundColor: Colors.red,
                           onPressed: () {
-                            _handleSignIn()
+                            _handleSignIn("G")
                                 .then((FirebaseUser user) => (print(user)))
                                 .catchError((e) => print(e));
                           },
