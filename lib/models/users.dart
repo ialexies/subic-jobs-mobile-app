@@ -33,16 +33,33 @@ class User{
 
 
   factory User.fromGoogle(DocumentSnapshot doc){
+
     return User(
-      // id: doc['id'],
+      id: doc['id'],
       email: doc['email'],
-      // userName: doc['username'],
-      // profilePhoto: doc['photoUrl'],
-		  //     displayName: doc['displayName'],
+      userName: doc['username'],
+      profilePhoto: doc['photoUrl'],
+		      displayName: doc['displayName'],
       // bio: doc['bio'],
+      
     );
   }
 
+
+  factory User.fromFb(DocumentSnapshot doc){
+
+    return User(
+      id: doc['id'],
+      email: doc['email'],
+      firstName: doc['firstName'],
+      lastName: doc['lastName'],
+      // profilePhoto: doc['picture']['url'],
+		      displayName: doc['displayName'],
+      // bio: doc['bio'],
+      
+    );
+
+  }
   
 
 

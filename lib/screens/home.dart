@@ -4,11 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/widgets/splashScreen.dart';
+import 'package:subicjobs/screens/registerUser.dart';
 import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/fa_icon.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -25,7 +27,6 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isAuth = false;
   static final FacebookLogin facebookSignIn = new FacebookLogin();
-  String _message = 'Log in/out by pressing the buttons below.';
 
   @override
   void initState() {
@@ -42,6 +43,8 @@ class _HomeState extends State<Home> {
     }).onError((err) {
       print('Error firabase signin $err');
     });
+
+    _googleSignIn.signOut(); //just a test, delete later
   }
 
   @override
@@ -53,29 +56,58 @@ class _HomeState extends State<Home> {
 
 
 
-  _createUserInFirestore(GoogleSignInAccount user) async{
-    DocumentSnapshot doc = await usersRef.document(user.email).get(); //check if the google user is existed in  users list of firestore
 
-    if(doc!=null){
-      setState(() {
+  _createUserInFirestore(
+      {GoogleSignInAccount googleUserAccount, fbUserAcount}) async {
+    if (googleUserAccount != null) {
+      print('Theres a google account ${googleUserAccount.toString()}');
+      DocumentSnapshot doc = await usersRef
+          .document(googleUserAccount.email)
+          .get(); //check if the google user is existed in  users list of firestore
+      // print(googleUserAccount.toString());
+
+      if (doc.exists) {
+        setState(() {
           currentUser = User.fromGoogle(doc);
-      });
-      print(currentUser.email.toString());
-    }else{
-      print('register for an account');
+        });
+
+      } else {
+        print('register for an account');
+        final userName = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context)=>RegisterUser(),
+          ),
+        );
+      }
     }
 
+    if (fbUserAcount != null) {
+      final String useremail = fbUserAcount["email"].toString();
 
+      DocumentSnapshot doc = await usersRef
+          .document(useremail)
+          .get(); //check if the google user is existed in  users list of firestore
+      // print( await );
 
+      if (doc != null) {
+        setState(() {
+          currentUser = User.fromFb(doc);
+        });
+        print(currentUser.email.toString());
+      } else {
+        print('register for an account');
+        // registerAccount(currentUser);
+      }
+    }
   }
-
 
   _handleSignInGoogle() async {
     AuthCredential credential;
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
-  
+
     credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -83,14 +115,11 @@ class _HomeState extends State<Home> {
 
     // set currentUser data
     final GoogleSignInAccount user = _googleSignIn.currentUser;
-    await _createUserInFirestore(user); //call this to deserialize the user document
-    
-
+    await _createUserInFirestore(
+        googleUserAccount: user); //call this to deserialize the user document
 
     return credential;
   }
-
-
 
   _handleSignInFacebook() async {
     AuthCredential fbCredential;
@@ -99,6 +128,13 @@ class _HomeState extends State<Home> {
     final FacebookAccessToken accessToken = result.accessToken;
     fbCredential =
         FacebookAuthProvider.getCredential(accessToken: accessToken.token);
+
+    final graphResponse = await http.get(
+        'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
+
+    final user = json.decode(graphResponse.body);
+
+    await _createUserInFirestore(fbUserAcount: user);
 
     return fbCredential;
 
@@ -128,7 +164,6 @@ class _HomeState extends State<Home> {
     }).catchError((err) {
       print('*****error in firbase handlesignin $err');
     }));
-            
 
     return user;
   }
@@ -143,7 +178,7 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: Text(  currentUser.email),
+      body: Text(currentUser.email),
       floatingActionButton: FloatingActionButton(onPressed: _signOut),
     );
   }
@@ -179,6 +214,7 @@ class _HomeState extends State<Home> {
                       children: <Widget>[
                         Expanded(
                             child: FloatingActionButton(
+                              heroTag: "btnFacebook",
                           onPressed: () {
                             _handleSignIn("FB")
                                 .then((FirebaseUser user) => (print(user)))
@@ -189,6 +225,7 @@ class _HomeState extends State<Home> {
                         VerticalDivider(),
                         Expanded(
                             child: FloatingActionButton(
+                              heroTag: "btnGoogle",
                           backgroundColor: Colors.red,
                           onPressed: () {
                             _handleSignIn("G")
