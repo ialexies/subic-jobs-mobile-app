@@ -6,6 +6,10 @@ import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/fa_icon.dart';
+import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
 
 final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -17,6 +21,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   bool isAuth = false;
+  static final FacebookLogin facebookSignIn = new FacebookLogin();
+  String _message = 'Log in/out by pressing the buttons below.';
 
   @override
   void initState() {
@@ -60,6 +66,60 @@ class _HomeState extends State<Home> {
     });
     return user;
   }
+
+
+
+Future<Null> _login() async {
+    final FacebookLoginResult result =
+        await facebookSignIn.logIn(['email','public_profile']);
+        
+
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+        final FacebookAccessToken accessToken = result.accessToken;
+        final graphResponse = await http.get(
+            'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
+        // final profile = JSON.decode(graphResponse.body);
+        final profile = json.decode(graphResponse.body);
+
+        print(profile.toString());
+
+         setState(() {
+            _message = '''
+            Logged in!
+            user: ${facebookSignIn.currentAccessToken};
+            Token: ${accessToken.token}
+            User id: ${accessToken.userId}
+            Expires: ${accessToken.expires}
+            Permissions: ${accessToken.permissions}
+            Declined permissions: ${accessToken.declinedPermissions}
+            ''';
+         }); 
+      
+
+
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        _showMessage('Login cancelled by the user.');
+        break;
+      case FacebookLoginStatus.error:
+        _showMessage('Something went wrong with the login process.\n'
+            'Here\'s the error Facebook gave us: ${result.errorMessage}');
+        break;
+    }
+  }
+
+  Future<Null> _logOut() async {
+    await facebookSignIn.logOut();
+    _showMessage('Logged out.');
+  }
+
+  void _showMessage(String message) {
+    setState(() {
+      _message = message;
+    });
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +177,13 @@ class _HomeState extends State<Home> {
                       children: <Widget>[
                         Expanded(
                             child: FloatingActionButton(
-                          onPressed: null,
+                          onPressed: _login,
+                          child: FaIcon(FontAwesomeIcons.facebookF),
+                        )),
+                        VerticalDivider(),
+                        Expanded(
+                            child: FloatingActionButton(
+                          onPressed: _logOut,
                           child: FaIcon(FontAwesomeIcons.facebookF),
                         )),
                         VerticalDivider(),
