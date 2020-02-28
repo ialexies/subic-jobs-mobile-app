@@ -76,7 +76,7 @@ class _HomeState extends State<Home> {
         final userName = await Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context)=>RegisterUser(),
+            builder: (context)=>RegisterUser(loginType: "G", user: googleUserAccount),
           ),
         );
       }
