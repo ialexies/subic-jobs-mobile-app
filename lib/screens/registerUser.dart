@@ -1,11 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:subicjobs/models/users.dart';
 
 class RegisterUser extends StatefulWidget {
   String loginType;
-  GoogleSignInAccount user;
-  RegisterUser({this.loginType,this.user});
+  Map<String, String> userInfo;
+  RegisterUser({this.userInfo});
 
 
   @override
@@ -35,8 +36,22 @@ class _RegisterUserState extends State<RegisterUser> {
                 Form(
                     child: Column(
                   children: <Widget>[
-                    Text(widget.user.email),
+                    // Text(widget.user.displayName.toUpperCase(),
+                    //   style: Theme.of(context).textTheme.headline4,
 
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 30),
+                      child: CircleAvatar(
+                        // backgroundImage: CachedNetworkImageProvider(
+                        //   widget.user.photoUrl
+                        // ),
+                                           
+                      ),
+                    ),
+                    
+
+        
                     TextFormField(
                       decoration: buildInputDecoration(hintText: "Username"),
                       keyboardType: TextInputType.text,

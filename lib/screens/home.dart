@@ -30,7 +30,6 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     FirebaseAuth.instance.onAuthStateChanged.listen((firebaseUser) {
@@ -54,51 +53,43 @@ class _HomeState extends State<Home> {
     // isAuth=false;
   }
 
+  _createUserInFirestore({userAccount, String accountType}) async {
+    Map<String, String> usersInfo = {
+      "email": null,
+      "photo": null,
+    };
 
-
-
-  _createUserInFirestore(
-      {GoogleSignInAccount googleUserAccount, fbUserAcount}) async {
-    if (googleUserAccount != null) {
-      print('Theres a google account ${googleUserAccount.toString()}');
-      DocumentSnapshot doc = await usersRef
-          .document(googleUserAccount.email)
-          .get(); //check if the google user is existed in  users list of firestore
-      // print(googleUserAccount.toString());
-
-      if (doc.exists) {
-        setState(() {
-          currentUser = User.fromGoogle(doc);
-        });
-
-      } else {
-        print('register for an account');
-        final userName = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context)=>RegisterUser(loginType: "G", user: googleUserAccount),
-          ),
-        );
-      }
+    switch (accountType) {
+      case "G":
+        {
+          usersInfo["email"] = userAccount.email.toString();
+          usersInfo["photo"] = userAccount.photoUrl.toString();
+        }
+        break;
+      case "FB":
+        {
+          print(accountType.toString());
+          usersInfo["email"] = userAccount["email"].toString();
+          usersInfo["photo"] = userAccount["picture"]["data"]["url"].toString();
+          print(accountType.toString());
+        }
+        break;
+      default:
     }
 
-    if (fbUserAcount != null) {
-      final String useremail = fbUserAcount["email"].toString();
-
-      DocumentSnapshot doc = await usersRef
-          .document(useremail)
-          .get(); //check if the google user is existed in  users list of firestore
-      // print( await );
-
-      if (doc != null) {
-        setState(() {
-          currentUser = User.fromFb(doc);
-        });
-        print(currentUser.email.toString());
-      } else {
-        print('register for an account');
-        // registerAccount(currentUser);
-      }
+    DocumentSnapshot doc = await usersRef.document(usersInfo["email"]).get();
+    if (doc.exists) {
+      setState(() {
+        currentUser = User.fromDocument(doc);
+      });
+    } else {
+      print('register for an account');
+      final userName = await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RegisterUser(userInfo: usersInfo),
+        ),
+      );
     }
   }
 
@@ -116,7 +107,8 @@ class _HomeState extends State<Home> {
     // set currentUser data
     final GoogleSignInAccount user = _googleSignIn.currentUser;
     await _createUserInFirestore(
-        googleUserAccount: user); //call this to deserialize the user document
+        userAccount: user,
+        accountType: "G"); //call this to deserialize the user document
 
     return credential;
   }
@@ -134,23 +126,16 @@ class _HomeState extends State<Home> {
 
     final user = json.decode(graphResponse.body);
 
-    await _createUserInFirestore(fbUserAcount: user);
+    await _createUserInFirestore(userAccount: user, accountType: "FB");
 
     return fbCredential;
 
-    // //************getting user info**********
-    // final graphResponse = await http.get(
-    //         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
-    // // final profile = JSON.decode(graphResponse.body);
-    // final profile = json.decode(graphResponse.body);
-    // print(profile.toString());
   }
 
   Future<FirebaseUser> _handleSignIn(String loginType) async {
     getCredential() async {
       if (loginType == "G") {
         return await _handleSignInGoogle();
-        // return await _handleFBSignIn();
       } else if (loginType == "FB") {
         return await _handleSignInFacebook();
       }
@@ -214,7 +199,7 @@ class _HomeState extends State<Home> {
                       children: <Widget>[
                         Expanded(
                             child: FloatingActionButton(
-                              heroTag: "btnFacebook",
+                          heroTag: "btnFacebook",
                           onPressed: () {
                             _handleSignIn("FB")
                                 .then((FirebaseUser user) => (print(user)))
@@ -225,7 +210,7 @@ class _HomeState extends State<Home> {
                         VerticalDivider(),
                         Expanded(
                             child: FloatingActionButton(
-                              heroTag: "btnGoogle",
+                          heroTag: "btnGoogle",
                           backgroundColor: Colors.red,
                           onPressed: () {
                             _handleSignIn("G")
