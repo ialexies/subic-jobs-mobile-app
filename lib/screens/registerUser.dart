@@ -33,6 +33,10 @@ class _RegisterUserState extends State<RegisterUser> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Register Account"),
+        automaticallyImplyLeading: false,
+        actions: <Widget>[
+          IconButton(icon: Icon(Icons.cancel), onPressed: null,),
+        ],
       ),
       body: ListView(
         children: <Widget>[

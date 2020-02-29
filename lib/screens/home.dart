@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -27,7 +28,7 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  bool isAuth = false;
+  bool isAuth;
   static final FacebookLogin facebookSignIn = new FacebookLogin();
 
   @override
@@ -44,7 +45,7 @@ class _HomeState extends State<Home> {
     }).onError((err) {
       print('Error firabase signin $err');
     });
-
+    isLoading=false;
     _googleSignIn.signOut(); //just a test, delete later
     facebookSignIn.logOut();
   }
@@ -54,6 +55,7 @@ class _HomeState extends State<Home> {
     super.dispose();
     // pageController.dispose();
     // isAuth=false;
+    currentUser=null;
   }
 
   _createUserInFirestore({userAccount, String accountType}) async {
@@ -98,7 +100,11 @@ class _HomeState extends State<Home> {
         // currentUser = userInfo;
         currentUser = User.fromNewRegister(userInfo);
       });
-      print(currentUser.firstName);
+      _signOut();
+      setState(() {
+        isLoading=false;
+      });
+      
     }
   }
 
@@ -134,10 +140,10 @@ class _HomeState extends State<Home> {
     AuthCredential fbCredential;
     final FacebookLoginResult result =
         await facebookSignIn.logIn(['email', 'public_profile']);
-    setState(() {
-      isLoading = true;
-    });
-
+ 
+    //     setState(() {
+    //   isLoading = true;
+    // });
     final FacebookAccessToken accessToken = result.accessToken;
     fbCredential =
         FacebookAuthProvider.getCredential(accessToken: accessToken.token);
@@ -146,7 +152,7 @@ class _HomeState extends State<Home> {
         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
 
     final user = json.decode(graphResponse.body);
-
+    
     await _createUserInFirestore(userAccount: user, accountType: "FB");
 
     return fbCredential;
@@ -205,7 +211,15 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            
+            SizedBox(
+              height: 150,
+              width: 150,
+                          child: CircleAvatar(
+                // backgroundImage: CachedNetworkImageProvider(currentUser.profilePhoto),
+              ),
+            ),
+            SizedBox(height: 20,),
+            Text(currentUser.email),
             Text("Welcome ${currentUser.firstName}",style: Theme.of(context).textTheme.headline5,),
             // Text(currentUser.firstName),
             // Text(currentUser.lastName),
