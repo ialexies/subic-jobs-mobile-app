@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/widgets/splashScreen.dart';
 import 'package:subicjobs/screens/registerUser.dart';
+import 'package:subicjobs/widgets/loadingPage.dart';
 import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +19,7 @@ final GoogleSignIn _googleSignIn = GoogleSignIn();
 final FirebaseAuth _auth = FirebaseAuth.instance;
 User currentUser;
 final usersRef = Firestore.instance.collection('users');
+bool isLoading;
 
 class Home extends StatefulWidget {
   @override
@@ -44,6 +46,7 @@ class _HomeState extends State<Home> {
     });
 
     _googleSignIn.signOut(); //just a test, delete later
+    facebookSignIn.logOut();
   }
 
   @override
@@ -83,9 +86,6 @@ class _HomeState extends State<Home> {
         currentUser = User.fromDocument(doc);
       });
     } else {
-
-     
-
       print('register for an account');
       final userInfo = await Navigator.push(
         context,
@@ -97,16 +97,22 @@ class _HomeState extends State<Home> {
         // currentUser.firstName. =userInfo["firstName"];
         // currentUser = userInfo;
         currentUser = User.fromNewRegister(userInfo);
-        
       });
       print(currentUser.firstName);
-      
     }
   }
 
   _handleSignInGoogle() async {
     AuthCredential credential;
-    final GoogleSignInAccount googleUser = await _googleSignIn.signIn().catchError((err){print('user did not login properly or cancelled');});
+    final GoogleSignInAccount googleUser =
+        await _googleSignIn.signIn().catchError((err) {
+      print('user did not login properly or cancelled');
+    });
+
+    setState(() {
+      isLoading = true;
+    });
+
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
@@ -128,6 +134,10 @@ class _HomeState extends State<Home> {
     AuthCredential fbCredential;
     final FacebookLoginResult result =
         await facebookSignIn.logIn(['email', 'public_profile']);
+    setState(() {
+      isLoading = true;
+    });
+
     final FacebookAccessToken accessToken = result.accessToken;
     fbCredential =
         FacebookAuthProvider.getCredential(accessToken: accessToken.token);
@@ -140,10 +150,10 @@ class _HomeState extends State<Home> {
     await _createUserInFirestore(userAccount: user, accountType: "FB");
 
     return fbCredential;
-
   }
 
   Future<FirebaseUser> _handleSignIn(String loginType) async {
+ 
     getCredential() async {
       if (loginType == "G") {
         return await _handleSignInGoogle();
@@ -152,10 +162,13 @@ class _HomeState extends State<Home> {
       }
     }
 
+
     final FirebaseUser user =
+    
         (await _auth.signInWithCredential(await getCredential()).then((val) {
       setState(() {
         isAuth = true;
+        isLoading = false;
       });
     }).catchError((err) {
       print('*****error in firbase handlesignin $err');
@@ -166,7 +179,21 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return isAuth == false ? unAuthScreen() : authScreen();
+    // return isAuth == false ? unAuthScreen() : authScreen();
+
+    if (isLoading == true) {
+      return Lodingpage();
+    } else {
+      if (isAuth == false) {
+        return unAuthScreen();
+      } else if (isAuth == true) {
+        return authScreen();
+      } else {
+        return Container(
+          child: Lodingpage(),
+        );
+      }
+    }
   }
 
   authScreen() {
@@ -174,15 +201,21 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: Column(
-        children: <Widget>[
-          Text(currentUser.email),
-          // Text(currentUser.firstName),
-          // Text(currentUser.lastName),
-
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            
+            Text("Welcome ${currentUser.firstName}",style: Theme.of(context).textTheme.headline5,),
+            // Text(currentUser.firstName),
+            // Text(currentUser.lastName),
+          ],
+        ),
       ),
-      floatingActionButton: FloatingActionButton(onPressed: _signOut),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.exit_to_app),
+        onPressed: _signOut
+        ),
     );
   }
 
