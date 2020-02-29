@@ -42,10 +42,22 @@ class User{
       email: doc['email'],
       userName: doc['username'],
       profilePhoto: doc['photoUrl'],
-		      displayName: doc['displayName'],
+		  displayName: doc['displayName'],
+      firstName: doc['firstName'],
+      lastName: doc['lastName'],
       // bio: doc['bio'],
       
     );
+  }
+
+  factory User.fromNewRegister(userInfo){
+    return User(
+      email: userInfo['email'],
+      firstName: userInfo['firstName'],
+      lastName: userInfo['lastName'],
+      profilePhoto: userInfo['photo'],
+    );    
+
   }
 
 

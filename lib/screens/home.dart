@@ -55,8 +55,8 @@ class _HomeState extends State<Home> {
 
   _createUserInFirestore({userAccount, String accountType}) async {
     Map<String, String> usersInfo = {
-      "email": null,
-      "photo": null,
+      "email": "",
+      "photo": "",
     };
 
     switch (accountType) {
@@ -83,19 +83,30 @@ class _HomeState extends State<Home> {
         currentUser = User.fromDocument(doc);
       });
     } else {
+
+     
+
       print('register for an account');
-      final userName = await Navigator.push(
+      final userInfo = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => RegisterUser(userInfo: usersInfo),
         ),
       );
+      setState(() {
+        // currentUser.firstName. =userInfo["firstName"];
+        // currentUser = userInfo;
+        currentUser = User.fromNewRegister(userInfo);
+        
+      });
+      print(currentUser.firstName);
+      
     }
   }
 
   _handleSignInGoogle() async {
     AuthCredential credential;
-    final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    final GoogleSignInAccount googleUser = await _googleSignIn.signIn().catchError((err){print('user did not login properly or cancelled');});
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
 
@@ -163,7 +174,14 @@ class _HomeState extends State<Home> {
       appBar: AppBar(
         title: Text('Home'),
       ),
-      body: Text(currentUser.email),
+      body: Column(
+        children: <Widget>[
+          Text(currentUser.email),
+          // Text(currentUser.firstName),
+          // Text(currentUser.lastName),
+
+        ],
+      ),
       floatingActionButton: FloatingActionButton(onPressed: _signOut),
     );
   }
