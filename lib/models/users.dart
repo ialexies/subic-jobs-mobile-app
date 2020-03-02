@@ -37,11 +37,13 @@ class User{
   
   factory User.fromDocument(DocumentSnapshot doc){
 
+
+
     return User(
       id: doc['id'],
       email: doc['email'],
       userName: doc['username'],
-      profilePhoto: doc['photoUrl'],
+      profilePhoto: doc['profilePhoto'],
 		  displayName: doc['displayName'],
       firstName: doc['firstName'],
       lastName: doc['lastName'],

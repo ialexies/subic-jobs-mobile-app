@@ -45,9 +45,9 @@ class _HomeState extends State<Home> {
     }).onError((err) {
       print('Error firabase signin $err');
     });
-    isLoading=false;
-    _googleSignIn.signOut(); //just a test, delete later
-    facebookSignIn.logOut();
+    isLoading = false;
+    // _googleSignIn.signOut(); //just a test, delete later
+    // facebookSignIn.logOut();
   }
 
   @override
@@ -55,7 +55,7 @@ class _HomeState extends State<Home> {
     super.dispose();
     // pageController.dispose();
     // isAuth=false;
-    currentUser=null;
+    currentUser = null;
   }
 
   _createUserInFirestore({userAccount, String accountType}) async {
@@ -102,36 +102,35 @@ class _HomeState extends State<Home> {
       });
       _signOut();
       setState(() {
-        isLoading=false;
+        isLoading = false;
       });
-      
     }
   }
 
   _handleSignInGoogle() async {
     AuthCredential credential;
     final GoogleSignInAccount googleUser =
-        await _googleSignIn.signIn().catchError((err) {
+        await _googleSignIn.signIn().then((val) async {
+      if (val != null) {
+        setState(() {
+          isLoading = true;
+        });
+
+        final GoogleSignInAuthentication googleAuth = await val.authentication;
+
+        credential = GoogleAuthProvider.getCredential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+        // set currentUser data
+        final GoogleSignInAccount user = _googleSignIn.currentUser;
+        await _createUserInFirestore(
+            userAccount: user,
+            accountType: "G"); //call this to deserialize the user document
+      }
+    }).catchError((err) {
       print('user did not login properly or cancelled');
     });
-
-    setState(() {
-      isLoading = true;
-    });
-
-    final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
-
-    credential = GoogleAuthProvider.getCredential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
-    // set currentUser data
-    final GoogleSignInAccount user = _googleSignIn.currentUser;
-    await _createUserInFirestore(
-        userAccount: user,
-        accountType: "G"); //call this to deserialize the user document
 
     return credential;
   }
@@ -140,7 +139,7 @@ class _HomeState extends State<Home> {
     AuthCredential fbCredential;
     final FacebookLoginResult result =
         await facebookSignIn.logIn(['email', 'public_profile']);
- 
+
     //     setState(() {
     //   isLoading = true;
     // });
@@ -152,14 +151,13 @@ class _HomeState extends State<Home> {
         'https://graph.facebook.com/v2.12/me?fields=name,first_name,last_name,email,picture&access_token=${accessToken.token}');
 
     final user = json.decode(graphResponse.body);
-    
+
     await _createUserInFirestore(userAccount: user, accountType: "FB");
 
     return fbCredential;
   }
 
   Future<FirebaseUser> _handleSignIn(String loginType) async {
- 
     getCredential() async {
       if (loginType == "G") {
         return await _handleSignInGoogle();
@@ -168,9 +166,7 @@ class _HomeState extends State<Home> {
       }
     }
 
-
     final FirebaseUser user =
-    
         (await _auth.signInWithCredential(await getCredential()).then((val) {
       setState(() {
         isAuth = true;
@@ -194,10 +190,9 @@ class _HomeState extends State<Home> {
         return unAuthScreen();
       } else if (isAuth == true) {
         return authScreen();
-      } else {
-        return Container(
-          child: Lodingpage(),
-        );
+      } 
+      else {
+        return unAuthScreen();
       }
     }
   }
@@ -214,22 +209,25 @@ class _HomeState extends State<Home> {
             SizedBox(
               height: 150,
               width: 150,
-                          child: CircleAvatar(
-                // backgroundImage: CachedNetworkImageProvider(currentUser.profilePhoto),
-              ),
+              child:  currentUser.profilePhoto == null? 
+                Icon(Icons.person) : 
+                CircleAvatar(
+                  backgroundImage: CachedNetworkImageProvider( currentUser.profilePhoto),
+                )
             ),
-            SizedBox(height: 20,),
+            SizedBox(
+              height: 20,
+            ),
             Text(currentUser.email),
-            Text("Welcome ${currentUser.firstName}",style: Theme.of(context).textTheme.headline5,),
-            // Text(currentUser.firstName),
-            // Text(currentUser.lastName),
+            Text(
+              "Welcome ${currentUser.firstName}",
+              style: Theme.of(context).textTheme.headline,
+            ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.exit_to_app),
-        onPressed: _signOut
-        ),
+          child: Icon(Icons.exit_to_app), onPressed: _signOut),
     );
   }
 
