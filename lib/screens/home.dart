@@ -157,6 +157,7 @@ class _HomeState extends State<Home> {
     return fbCredential;
   }
 
+
   Future<FirebaseUser> _handleSignIn(String loginType) async {
     getCredential() async {
       if (loginType == "G") {
