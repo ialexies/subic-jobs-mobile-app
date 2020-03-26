@@ -7,7 +7,7 @@ import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/widgets/splashScreen.dart';
 import 'package:subicjobs/screens/registerUser.dart';
 import 'package:subicjobs/widgets/loadingPage.dart';
-import 'dart:io';
+
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/fa_icon.dart';
@@ -157,7 +157,6 @@ class _HomeState extends State<Home> {
     return fbCredential;
   }
 
-
   Future<FirebaseUser> _handleSignIn(String loginType) async {
     getCredential() async {
       if (loginType == "G") {
@@ -191,8 +190,7 @@ class _HomeState extends State<Home> {
         return unAuthScreen();
       } else if (isAuth == true) {
         return authScreen();
-      } 
-      else {
+      } else {
         return unAuthScreen();
       }
     }
@@ -204,28 +202,72 @@ class _HomeState extends State<Home> {
         title: Text('Home'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            SizedBox(
-              height: 150,
-              width: 150,
-              child:  currentUser.profilePhoto == null? 
-                Icon(Icons.person) : 
-                CircleAvatar(
-                  backgroundImage: CachedNetworkImageProvider( currentUser.profilePhoto),
-                )
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            Text(currentUser.email),
-            Text(
-              "Welcome ${currentUser.firstName}",
-              style: Theme.of(context).textTheme.headline,
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              Card(
+                color: Colors.blue,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      const ListTile(
+                        // leading: Icon(Icons.assignment_ind,size: 40),
+                        title: Text('CORONA VIRUS SELF-CHECKER',
+                        style: TextStyle(
+                        fontSize: 19,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold
+                        ),),
+                        subtitle:
+                            Text('\n This will help you make decisions about seeking appropriate medical care. This system is not intended for the diagnosis or treatment of disease or other conditions, including COVID-19',
+                            style: TextStyle(
+                              color: Colors.white
+                            ),
+                            ),
+                      ),
+                      ButtonBar(
+                        children: <Widget>[
+                    
+                          FlatButton(
+                            color: Theme.of(context).secondaryHeaderColor,
+                            child: const Text('Take a test'),
+                            onPressed: () {/* ... */},
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
+
+        // Column(
+        //   mainAxisAlignment: MainAxisAlignment.center,
+        //   children: <Widget>[
+        //     SizedBox(
+        //       height: 150,
+        //       width: 150,
+        //       child:  currentUser.profilePhoto == null?
+        //         Icon(Icons.person) :
+        //         CircleAvatar(
+        //           backgroundImage: CachedNetworkImageProvider( currentUser.profilePhoto),
+        //         )
+        //     ),
+        //     SizedBox(
+        //       height: 20,
+        //     ),
+        //     Text(currentUser.email),
+        //     Text(
+        //       "Welcome ${currentUser.firstName}",
+        //       style: Theme.of(context).textTheme.headline,
+        //     ),
+        //   ],
+        // ),
       ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.exit_to_app), onPressed: _signOut),
