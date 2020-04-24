@@ -23,6 +23,7 @@ class _RegisterUserState extends State<RegisterUser> {
   final _formKey = GlobalKey<FormState>();
   String firstName;
   String lastName;
+  String phoneNumber;
 
   // _RegisterUserState(this.user);
 
@@ -66,6 +67,7 @@ class _RegisterUserState extends State<RegisterUser> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 70),
                     child: Form(
+                        
                         key: _formKey,
                         child: Column(
                           children: <Widget>[
@@ -108,6 +110,28 @@ class _RegisterUserState extends State<RegisterUser> {
                                 print(lastName);
                               },
                             ),
+                            SizedBox(height: 10),
+                            TextFormField(
+                              decoration: buildInputDecoration(
+                                  hintText: "Phone Number"),
+                              textAlign: TextAlign.center,
+                              validator: (val){
+                                if (val.length == 0) {
+                                  return "Enter Phone Number";
+                                } else if (val.length > 11) {
+                                  return "Phone Number is too long";
+                                } else if (val.length < 2) {
+                                  return "Phone Number is too short";
+                                }
+                              },
+                              autovalidate: true,
+                              onSaved: (val) {
+                                phoneNumber = val;
+                                print(phoneNumber);
+                              },
+                              keyboardType: TextInputType.phone,
+                            ),
+                         
                             SizedBox(height: 20),
                             ButtonTheme(
                               minWidth: 150,
@@ -123,7 +147,15 @@ class _RegisterUserState extends State<RegisterUser> {
                               child: RaisedButton.icon(
                                 icon: Icon(Icons.save,
                                     color: Theme.of(context).primaryColorLight),
-                                onPressed: () => createUser(),
+                                // onPressed: () => createUser(),
+                                onPressed: (){
+                                   final form = _formKey.currentState;
+                                  // createUser();
+                                  if (form.validate()) {
+                                    form.save();
+                                    createUser();
+                                  }
+                                },
                                 label: Text(
                                   'Register',
                                   style: TextStyle(
@@ -156,14 +188,12 @@ class _RegisterUserState extends State<RegisterUser> {
   }
 
   createUser() {
-    final form = _formKey.currentState;
-
-    if (form.validate()) {
-      form.save();
+      
       Map userInfo = {
         "email": widget.userInfo["email"],
         "firstName": firstName,
         "lastName": lastName,
+        "phoneNumber": phoneNumber,
         "photo": widget.userInfo["photo"]
       };
 
@@ -171,7 +201,13 @@ class _RegisterUserState extends State<RegisterUser> {
         "email": userInfo["email"],
         "firstName": userInfo["firstName"],
         "lastName": userInfo["lastName"],
+        "phoneNumber": phoneNumber,
         "profilePhoto": userInfo["photo"],
+        "bio":'',
+        "age":'',
+        "accountType": 1,
+        "dateCreated": DateTime.now(),
+        "dateUpdated": DateTime.now(),
       }).then((val) {
         SnackBar snackBar = SnackBar(content: Text("Welcome $firstName"));
         _scaffoldKey.currentState.showSnackBar(snackBar);
@@ -181,6 +217,6 @@ class _RegisterUserState extends State<RegisterUser> {
       }).catchError((val){
         print('error on adding user $val');
       });
-    }
+    
   }
 }

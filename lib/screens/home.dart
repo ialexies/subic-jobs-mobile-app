@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   bool isAuth;
   static final FacebookLogin facebookSignIn = new FacebookLogin();
+  final GlobalKey<ScaffoldState> _unAuthScaffoldKey =
+      new GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -158,6 +162,30 @@ class _HomeState extends State<Home> {
   }
 
   Future<FirebaseUser> _handleSignIn(String loginType) async {
+    // Check if there's internet
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        print('with internet');
+
+        return await signInUser(loginType);
+      }
+    } catch (e) {
+      print('internet $e');
+
+      _unAuthScaffoldKey.currentState.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please Connect to Internet',
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<FirebaseUser> signInUser(String loginType) async {
     getCredential() async {
       if (loginType == "G") {
         return await _handleSignInGoogle();
@@ -197,9 +225,10 @@ class _HomeState extends State<Home> {
   }
 
   authScreen() {
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: Text('${currentUser.email}'),
       ),
       body: Center(
         child: Padding(
@@ -215,22 +244,20 @@ class _HomeState extends State<Home> {
                     children: <Widget>[
                       const ListTile(
                         // leading: Icon(Icons.assignment_ind,size: 40),
-                        title: Text('CORONA VIRUS SELF-CHECKER',
-                        style: TextStyle(
-                        fontSize: 19,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold
-                        ),),
-                        subtitle:
-                            Text('\n This will help you make decisions about seeking appropriate medical care. This system is not intended for the diagnosis or treatment of disease or other conditions, including COVID-19',
-                            style: TextStyle(
-                              color: Colors.white
-                            ),
-                            ),
+                        title: Text(
+                          'CORONA VIRUS SELF-CHECKER',
+                          style: TextStyle(
+                              fontSize: 19,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '\n This will help you make decisions about seeking appropriate medical care. This system is not intended for the diagnosis or treatment of disease or other conditions, including COVID-19',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ButtonBar(
                         children: <Widget>[
-                    
                           FlatButton(
                             color: Theme.of(context).secondaryHeaderColor,
                             child: const Text('Take a test'),
@@ -245,29 +272,6 @@ class _HomeState extends State<Home> {
             ],
           ),
         ),
-
-        // Column(
-        //   mainAxisAlignment: MainAxisAlignment.center,
-        //   children: <Widget>[
-        //     SizedBox(
-        //       height: 150,
-        //       width: 150,
-        //       child:  currentUser.profilePhoto == null?
-        //         Icon(Icons.person) :
-        //         CircleAvatar(
-        //           backgroundImage: CachedNetworkImageProvider( currentUser.profilePhoto),
-        //         )
-        //     ),
-        //     SizedBox(
-        //       height: 20,
-        //     ),
-        //     Text(currentUser.email),
-        //     Text(
-        //       "Welcome ${currentUser.firstName}",
-        //       style: Theme.of(context).textTheme.headline,
-        //     ),
-        //   ],
-        // ),
       ),
       floatingActionButton: FloatingActionButton(
           child: Icon(Icons.exit_to_app), onPressed: _signOut),
@@ -282,6 +286,7 @@ class _HomeState extends State<Home> {
 
   unAuthScreen() {
     return Scaffold(
+      key: _unAuthScaffoldKey,
       body: SplashScreen(
         title: "Please Login",
         description: "Please Login using \n your preffered account",

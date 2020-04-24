@@ -1,5 +1,3 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User{
@@ -14,7 +12,9 @@ class User{
   final String gender;
   final String profilePhoto;
   final String phoneNumber;
-  final String loginType;
+  final String accountType;
+  final DateTime dateCreated;
+  final DateTime dateUpdated;
 
   User({
     this.id,
@@ -28,27 +28,48 @@ class User{
     this.gender,
     this.profilePhoto,
     this.phoneNumber,
-    this.loginType,
+    this.accountType,
+    this.dateCreated,
+    this.dateUpdated,
   });
 
 
+  Map<String, dynamic> toMap(){
+    var map = Map<String, dynamic>();
+
+    map['id'] = id;
+    map['userName'] = userName;
+    map['displayName'] = displayName;
+    map['firstName'] = firstName;
+    map['lastName'] = lastName;
+    map['bio'] = bio;
+    map['email'] = email;
+    map['age'] = age;
+    map['gender'] = gender;
+    map['profilePhoto'] = profilePhoto;
+    map['phoneNumber'] = phoneNumber;
+    map['accountType'] = accountType;
+    map['dateCreated'] = dateCreated;
+    map['dateUpdated'] = dateUpdated;
+  }
 
 
-  
   factory User.fromDocument(DocumentSnapshot doc){
-
-
-
     return User(
       id: doc['id'],
-      email: doc['email'],
-      userName: doc['username'],
-      profilePhoto: doc['profilePhoto'],
-		  displayName: doc['displayName'],
+      // userName: doc['username'],
+      // displayName: doc['displayName'],
       firstName: doc['firstName'],
       lastName: doc['lastName'],
-      // bio: doc['bio'],
-      
+      bio: doc['bio'],
+      email: doc['email'],
+      age: doc['age'],
+      gender: doc['gender'],
+      profilePhoto: doc['profilePhoto'],
+		  phoneNumber: doc['phoneNumber'],
+      accountType: doc['accountType'],
+      dateCreated: doc['dateCreated'],
+      dateUpdated: doc['dateUpdated'],
     );
   }
 
@@ -59,39 +80,6 @@ class User{
       lastName: userInfo['lastName'],
       profilePhoto: userInfo['photo'],
     );    
-
   }
-
-
-  // factory User.fromGoogle(DocumentSnapshot doc){
-
-  //   return User(
-  //     id: doc['id'],
-  //     email: doc['email'],
-  //     userName: doc['username'],
-  //     profilePhoto: doc['photoUrl'],
-	// 	      displayName: doc['displayName'],
-  //     // bio: doc['bio'],
-      
-  //   );
-  // }
-
-
-  // factory User.fromFb(DocumentSnapshot doc){
-
-  //   return User(
-  //     id: doc['id'],
-  //     email: doc['email'],
-  //     firstName: doc['firstName'],
-  //     lastName: doc['lastName'],
-  //     // profilePhoto: doc['picture']['url'],
-	// 	      displayName: doc['displayName'],
-  //     // bio: doc['bio'],
-      
-  //   );
-
-  // }
   
-
-
 }
