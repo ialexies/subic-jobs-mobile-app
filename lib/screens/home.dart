@@ -24,6 +24,8 @@ User currentUser;
 final usersRef = Firestore.instance.collection('users');
 bool isLoading;
 
+Future<QuerySnapshot> searchUserFuture;
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -86,10 +88,17 @@ class _HomeState extends State<Home> {
       default:
     }
 
-    DocumentSnapshot doc = await usersRef.document(usersInfo["email"]).get();
-    if (doc.exists) {
+ 
+       QuerySnapshot loggedinUser = await Firestore.instance.collection("users") 
+      //  .where("email", isEqualTo : usersInfo["email"])
+       .where("id", isEqualTo : usersInfo["id"])
+       .getDocuments();
+
+ 
+
+    if (loggedinUser.documents.length==1) {
       setState(() {
-        currentUser = User.fromDocument(doc);
+        currentUser = User.fromDocument(loggedinUser.documents[0].data);
       });
     } else {
       print('register for an account');
@@ -227,7 +236,7 @@ class _HomeState extends State<Home> {
   authScreen() {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${currentUser.id}'),
+        title: Text('${currentUser.email}'),
       ),
       body: Center(
         child: Padding(
@@ -281,6 +290,7 @@ class _HomeState extends State<Home> {
     await _auth.signOut();
     await _googleSignIn.signOut();
     await facebookSignIn.logOut();
+    Navigator.push(context, unAuthScreen());
   }
 
   unAuthScreen() {

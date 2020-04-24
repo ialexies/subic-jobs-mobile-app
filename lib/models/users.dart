@@ -56,9 +56,9 @@ class User{
   }
 
   
-  factory User.fromDocument(DocumentSnapshot doc){
+  factory User.fromDocument( doc){
     return User(
-      id: doc['id'],
+      id:  doc["id"], 
       // userName: doc['username'],
       // displayName: doc['displayName'],
       firstName: doc['firstName'],
@@ -77,13 +77,13 @@ class User{
 
   factory User.fromNewRegister(userInfo){
     return User(
-      id: userInfo['id'],
+      id: userInfo['id'],  
       email: userInfo['email'],
       firstName: userInfo['firstName'],
       lastName: userInfo['lastName'],
       profilePhoto: userInfo['photo'],
-      dateCreated: userInfo['dateCreated'],
-      dateUpdated: userInfo['dateUpdated'],
+      dateCreated:  Timestamp.fromDate( userInfo['dateCreated']), 
+      dateUpdated: Timestamp.fromDate( userInfo['dateUpdated']),
 
     );    
   }
