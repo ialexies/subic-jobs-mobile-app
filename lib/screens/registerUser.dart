@@ -7,6 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:subicjobs/models/users.dart';
 import 'package:subicjobs/screens/home.dart';
+import 'package:uuid/uuid.dart';
+
+var uuid = Uuid();
 
 class RegisterUser extends StatefulWidget {
   String loginType;
@@ -188,16 +191,22 @@ class _RegisterUserState extends State<RegisterUser> {
   }
 
   createUser() {
-      
+      String createUuid = "${uuid.v4().toString()}";
+      DateTime dateCreated = DateTime.now();
+
       Map userInfo = {
+        "id":createUuid,
         "email": widget.userInfo["email"],
         "firstName": firstName,
         "lastName": lastName,
         "phoneNumber": phoneNumber,
-        "photo": widget.userInfo["photo"]
+        "photo": widget.userInfo["photo"],
+        "dateCreated": dateCreated ,
+        "dateUpdated": dateCreated ,
       };
 
       usersRef.document(userInfo["email"]).setData({
+        "id": createUuid,
         "email": userInfo["email"],
         "firstName": userInfo["firstName"],
         "lastName": userInfo["lastName"],
@@ -206,8 +215,8 @@ class _RegisterUserState extends State<RegisterUser> {
         "bio":'',
         "age":'',
         "accountType": 1,
-        "dateCreated": DateTime.now(),
-        "dateUpdated": DateTime.now(),
+        "dateCreated": dateCreated ,
+        "dateUpdated": dateCreated ,
       }).then((val) {
         SnackBar snackBar = SnackBar(content: Text("Welcome $firstName"));
         _scaffoldKey.currentState.showSnackBar(snackBar);

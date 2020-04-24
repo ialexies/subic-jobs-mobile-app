@@ -1,3 +1,5 @@
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User{
@@ -12,9 +14,9 @@ class User{
   final String gender;
   final String profilePhoto;
   final String phoneNumber;
-  final String accountType;
-  final DateTime dateCreated;
-  final DateTime dateUpdated;
+  final int accountType;
+  final Timestamp dateCreated;
+  final Timestamp dateUpdated;
 
   User({
     this.id,
@@ -53,7 +55,7 @@ class User{
     map['dateUpdated'] = dateUpdated;
   }
 
-
+  
   factory User.fromDocument(DocumentSnapshot doc){
     return User(
       id: doc['id'],
@@ -75,10 +77,14 @@ class User{
 
   factory User.fromNewRegister(userInfo){
     return User(
+      id: userInfo['id'],
       email: userInfo['email'],
       firstName: userInfo['firstName'],
       lastName: userInfo['lastName'],
       profilePhoto: userInfo['photo'],
+      dateCreated: userInfo['dateCreated'],
+      dateUpdated: userInfo['dateUpdated'],
+
     );    
   }
   

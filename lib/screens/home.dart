@@ -225,10 +225,9 @@ class _HomeState extends State<Home> {
   }
 
   authScreen() {
-
     return Scaffold(
       appBar: AppBar(
-        title: Text('${currentUser.email}'),
+        title: Text('${currentUser.id}'),
       ),
       body: Center(
         child: Padding(
